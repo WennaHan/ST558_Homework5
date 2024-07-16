@@ -10,12 +10,82 @@ editor: visual
 
 ## Task 1: Conceptual Questions
 
-### 1. What is the purpose of using cross-validation when fitting a random forest model? 
+### 1. What is the purpose of using cross-validation when fitting a random forest model?
 
-### 2. Describe the bagged tree algorithm. 
+-   Cross-validation provides a more reliable estimate of the model's performance compared to using a single train-test split. It is used to choose the optimal tuning parameter and reduce bias and variance.
 
-### 3. What is meant by a general linear model? 
+### 2. Describe the bagged tree algorithm.
 
-### 4. When fitting a multiple linear regression model, what does adding an interaction term do? That is, what does it allow the model to do differently as compared to when it is not included in the model? 
+-   The bagged tree algorithm, or bootstrap aggregation, is an ensemble method that creates multiple datasets by resampling the original data with replacement (non-parametric) or from a fitted model (parametric). For each resampled dataset, a full decision tree is grown using all available features at each split. Predictions are made by aggregating results from all trees, using averaging for regression or majority voting for classification. Out-of-bag samples (observations not used in a particular bootstrap sample) are utilized to estimate model performance, providing robust error estimates and confidence intervals.
+
+### 3. What is meant by a general linear model?
+
+-   The general linear model has continuous response and allows for both continuous and categorical predictors. It assumes a linear relationship between predictors and the expected value of the response.
+
+### 4. When fitting a multiple linear regression model, what does adding an interaction term do? That is, what does it allow the model to do differently as compared to when it is not included in the model?
+
+-   Without interaction terms, the model assumes that the effect of each predictor is constant, regardless of the values of other predictors. Interaction terms relax this assumption, allowing for more flexible and potentially more realistic modeling of complex relationships in the data. It allows the non-additive effects, which means the effect of one predictor can vary depending on the value of another predictor.
 
 ### 5. Why do we split our data into a training and test set?
+
+-   We split data into training and test sets to evaluate a model's performance. It helps detect overfitting, assess generalization ability, and offers an unbiased performance estimate. The test set serves as a proxy for new data, allowing for fair model comparison and selection. It also prevents data leakage by keeping a portion of the data completely separate from the training process.
+
+## Task 2: Fitting Models
+
+The data set called heart.csv is used for this task. This data set gives information about whether or not someone has heart disease (HeartDisease = 1 or = 0) along with different measurements about that person’s health.
+
+### Quick EDA/Data Preparation
+
+load required library
+
+```{r}
+library(tidyverse)
+library(caret)
+library(corrplot)
+library(rpart)
+library(randomForest)
+library(gbm)
+```
+
+read data
+
+```{r}
+data <- read_csv('heart.csv')
+```
+
+#### 1. Check on missingness and summarize the data, especially with respect to the relationships of the variables to HeartDisease.
+
+```{r}
+# check missingness
+colSums(is.na(data))
+```
+It seems no NA values in this data. Howeverm still some values seem not valid. 
+
+```{r}
+# check zero values
+colSums(data == 0)
+```
+The resting blood pressure and serum cholesterol should not have a value of 0, thus they need to be dropped from the data. For fasting blood sugar and oldpeak, 0 is a possible value, which is not due to missing, thus, they are keeped. After data cleaning, data is summaried. 
+
+```{r}
+# drop the invalid data
+data <- data |>
+  filter(!RestingBP == 0 & !Cholesterol == 0)
+
+# summarize data
+summary(data)
+```
+The above information shows the distribution of all variables. However, the HeartDisease should be a 0-1 coded categorical variable. let's correct it.
+```{r}
+data$HeartDisease <- as.character(data$HeartDisease)
+str(data)
+```
+
+```{r}
+corrplot(data, method = 'color',
+         order = 'alphabet',
+         diag = FALSE,
+         col = COL2('RdBu'),
+         tl.cex = 0.7)
+```
+
