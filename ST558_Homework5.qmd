@@ -1,0 +1,21 @@
+---
+title: "ST558_Homework5"
+format: html
+editor: visual
+---
+
+## ST558_Homework5
+
+## Wenna Han
+
+## Task 1: Conceptual Questions
+
+### 1. What is the purpose of using cross-validation when fitting a random forest model? 
+
+### 2. Describe the bagged tree algorithm. 
+
+### 3. What is meant by a general linear model? 
+
+### 4. When fitting a multiple linear regression model, what does adding an interaction term do? That is, what does it allow the model to do differently as compared to when it is not included in the model? 
+
+### 5. Why do we split our data into a training and test set?
