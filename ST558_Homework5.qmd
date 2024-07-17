@@ -164,7 +164,8 @@ Its showing Accuracy and Kappa metrics result for different k value. From the re
 test_pred <- predict(knn_fit, newdata = test_set)
 
 # test the model performance with the confusion matrix
-confusionMatrix(test_pred, test_set$HeartDisease)
+confusionMatrix_kNN<-confusionMatrix(test_pred, test_set$HeartDisease)
+confusionMatrix_kNN
 ```
 The confusion matrix shows our model accuracy for the test set is 79.87%. It works pretty well.
 
@@ -254,16 +255,87 @@ As shown above, Model 1 has the best performance/accuracy. Model 1 is HeartDisea
 
 
 ### Tree Models
-To create tree models, we don’t need to create the dummy variables. Thus, we can use the previous data set “data” in the training process.
+As with logistic regression, tree models can accept factor/character variables as predictors. Thus, we will use the same data as we used before (data_logistic, training_set_glm, test_set_glm). We will fit the model with ExerciseAngina, Oldpeak, ChestPainType, MaxHR, Sex, and Age.
 
-Fitting a model with ExerciseAngina, ChestPainType, Oldpeak, Age, MaxHR and Sex as predictors.
 #### classification tree model
+```{r}
+set.seed(55806175)
+classification_tree_fit <- train(HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age,
+                            data = training_set_glm,
+                            method = "rpart",
+                            trControl = trctrl,
+                            tuneGrid = expand.grid(cp = seq(0, 0.1, by = 0.001)))
+classification_tree_fit
 
+# predict the test set with the trained model
+test_classification_tree_pred <- predict(classification_tree_fit, 
+                                         newdata = test_set_glm)
 
-#### random forest
+# test the model performance with the confusion matrix
+confusionMatrix_classification_tree <-confusionMatrix(test_classification_tree_pred,
+                                                      test_set_glm$HeartDisease)
+```
+
+#### random forest model
+```{r}
+set.seed(55806176)
+random_forest_fit <- train(HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age,
+                           data = training_set_glm,
+                           method = "rf",
+                           trControl = trctrl,
+                           tuneGrid = expand.grid(mtry = 1:(ncol(data)/3)))
+random_forest_fit
+
+# predict the test set with the trained model
+test_random_forest_pred <- predict(random_forest_fit, 
+                                   newdata = test_set_glm)
+
+# test the model performance with the confusion matrix
+confusionMatrix_random_forest <-confusionMatrix(test_random_forest_pred,
+                                                test_set_glm$HeartDisease)
+```
 
 #### boosted tree
+```{r}
+set.seed(55806177)
 
+boosted_tree_fit <- train(HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age,
+                     data = training_set_glm,
+                     method = "gbm",
+                     trControl = trctrl,
+                     tuneGrid = expand.grid(n.trees = c(25, 50, 100, 200), # Number of trees (boosting iterations) in the GBM model
+                                            interaction.depth = c(1, 2, 3), # Maximum depth of variable interactions in each tree
+                                            shrinkage = 0.1, # Shrinkage parameter (learning rate) to control overfitting
+                                            n.minobsinnode = 10), # Minimum number of observations in each terminal node of a tree
+                     verbose = FALSE ) # Control verbosity of the GBM model training
+boosted_tree_fit
 
+# predict the test set with the trained model
+test_boosted_tree_pred <- predict(boosted_tree_fit, 
+                                  newdata = test_set_glm)
 
+# test the model performance with the confusion matrix
+confusionMatrix_boosted_tree <-confusionMatrix(test_boosted_tree_pred,
+                                               test_set_glm$HeartDisease)
+```
 
+#### Compare the three tree models
+```{r}
+list(classification_tree = confusionMatrix_classification_tree$overall[1], 
+     random_forest = confusionMatrix_random_forest$overall[1], 
+     boosted_tree = confusionMatrix_boosted_tree$overall[1])
+```
+It seems the random forest model and boosted tree model perform equally better than the classification tree model. 
+
+### Wrap up
+Let's recall all model we fitted and compare their performance!
+```{r}
+list(kNN = confusionMatrix_kNN$overall[1],
+     logistic_M1 = confusionMatrix_M1$overall[1], 
+     logistic_M2 = confusionMatrix_M2$overall[1], 
+     logistic_M3 = confusionMatrix_M3$overall[1],
+     classification_tree = confusionMatrix_classification_tree$overall[1], 
+     random_forest = confusionMatrix_random_forest$overall[1], 
+     boosted_tree = confusionMatrix_boosted_tree$overall[1])
+```
+Overall, the logistic model 1 perform the best. Its accuracy rate is the highest, which is 84.56%. As a reminder, logistic model 1 is HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age. 

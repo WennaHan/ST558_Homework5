@@ -133,11 +133,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="st558_homework5" class="level2">
-<h2 class="anchored" data-anchor-id="st558_homework5">ST558_Homework5</h2>
-</section>
-<section id="wenna-han" class="level2">
-<h2 class="anchored" data-anchor-id="wenna-han">Wenna Han</h2>
+<section id="st558_homework5_wenna-han" class="level2">
+<h2 class="anchored" data-anchor-id="st558_homework5_wenna-han">ST558_Homework5_Wenna Han</h2>
 </section>
 <section id="task-1-conceptual-questions" class="level2">
 <h2 class="anchored" data-anchor-id="task-1-conceptual-questions">Task 1: Conceptual Questions</h2>
@@ -524,7 +521,8 @@ The final value used for the model was k = 21.</code></pre>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>test_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(knn_fit, <span class="at">newdata =</span> test_set)</span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="co"># test the model performance with the confusion matrix</span></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">confusionMatrix</span>(test_pred, test_set<span class="sc">$</span>HeartDisease)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>confusionMatrix_kNN<span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(test_pred, test_set<span class="sc">$</span>HeartDisease)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>confusionMatrix_kNN</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Confusion Matrix and Statistics
 
@@ -772,16 +770,308 @@ $logistic_M3
 </section>
 <section id="tree-models" class="level3">
 <h3 class="anchored" data-anchor-id="tree-models">Tree Models</h3>
-<p>To create tree models, we don’t need to create the dummy variables. Thus, we can use the previous data set “data” in the training process.</p>
-<p>Fitting a model with ExerciseAngina, ChestPainType, Oldpeak, Age, MaxHR and Sex as predictors. #### classification tree model</p>
-<section id="random-forest" class="level4">
-<h4 class="anchored" data-anchor-id="random-forest">random forest</h4>
+<p>As with logistic regression, tree models can accept factor/character variables as predictors. Thus, we will use the same data as we used before (data_logistic, training_set_glm, test_set_glm). We will fit the model with ExerciseAngina, Oldpeak, ChestPainType, MaxHR, Sex, and Age.</p>
+<section id="classification-tree-model" class="level4">
+<h4 class="anchored" data-anchor-id="classification-tree-model">classification tree model</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">55806175</span>)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>classification_tree_fit <span class="ot">&lt;-</span> <span class="fu">train</span>(HeartDisease <span class="sc">~</span> ExerciseAngina <span class="sc">+</span> Oldpeak <span class="sc">+</span> ChestPainType <span class="sc">+</span> MaxHR <span class="sc">+</span> Sex <span class="sc">+</span> Age,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">data =</span> training_set_glm,</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">method =</span> <span class="st">"rpart"</span>,</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">trControl =</span> trctrl,</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">tuneGrid =</span> <span class="fu">expand.grid</span>(<span class="at">cp =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">0.1</span>, <span class="at">by =</span> <span class="fl">0.001</span>)))</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>classification_tree_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CART 
+
+597 samples
+  6 predictor
+  2 classes: '0', '1' 
+
+No pre-processing
+Resampling: Cross-Validated (10 fold, repeated 3 times) 
+Summary of sample sizes: 538, 538, 536, 538, 537, 538, ... 
+Resampling results across tuning parameters:
+
+  cp     Accuracy   Kappa    
+  0.000  0.7890158  0.5776630
+  0.001  0.7901087  0.5799620
+  0.002  0.7946376  0.5888995
+  0.003  0.7946376  0.5888995
+  0.004  0.7986188  0.5964692
+  0.005  0.7958410  0.5908318
+  0.006  0.7941275  0.5870607
+  0.007  0.7958036  0.5900594
+  0.008  0.7963501  0.5909301
+  0.009  0.7969150  0.5920416
+  0.010  0.7996558  0.5974800
+  0.011  0.8013507  0.6004931
+  0.012  0.7895610  0.5766936
+  0.013  0.7895610  0.5766936
+  0.014  0.7822911  0.5621668
+  0.015  0.7811611  0.5597856
+  0.016  0.7789012  0.5552961
+  0.017  0.7789012  0.5552961
+  0.018  0.7738535  0.5451624
+  0.019  0.7732886  0.5439880
+  0.020  0.7649907  0.5272386
+  0.021  0.7649907  0.5272386
+  0.022  0.7605275  0.5179588
+  0.023  0.7605275  0.5179588
+  0.024  0.7599813  0.5167680
+  0.025  0.7599813  0.5167680
+  0.026  0.7611018  0.5185126
+  0.027  0.7611018  0.5185126
+  0.028  0.7632876  0.5226532
+  0.029  0.7632876  0.5226532
+  0.030  0.7644176  0.5247918
+  0.031  0.7644176  0.5247918
+  0.032  0.7666034  0.5288971
+  0.033  0.7666034  0.5288971
+  0.034  0.7666034  0.5288971
+  0.035  0.7666034  0.5288971
+  0.036  0.7687521  0.5327472
+  0.037  0.7687521  0.5327472
+  0.038  0.7687521  0.5327472
+  0.039  0.7687521  0.5327472
+  0.040  0.7687521  0.5327472
+  0.041  0.7687521  0.5327472
+  0.042  0.7687521  0.5327472
+  0.043  0.7687521  0.5326754
+  0.044  0.7687521  0.5326754
+  0.045  0.7687521  0.5326754
+  0.046  0.7687521  0.5326754
+  0.047  0.7687521  0.5326754
+  0.048  0.7687521  0.5326754
+  0.049  0.7687521  0.5326754
+  0.050  0.7687521  0.5326754
+  0.051  0.7687521  0.5326754
+  0.052  0.7687521  0.5326754
+  0.053  0.7687521  0.5326754
+  0.054  0.7687521  0.5326754
+  0.055  0.7687521  0.5326754
+  0.056  0.7687521  0.5326754
+  0.057  0.7687521  0.5326754
+  0.058  0.7687521  0.5326754
+  0.059  0.7687521  0.5326754
+  0.060  0.7687521  0.5326754
+  0.061  0.7687521  0.5326754
+  0.062  0.7687521  0.5326754
+  0.063  0.7687521  0.5326754
+  0.064  0.7687521  0.5326754
+  0.065  0.7687521  0.5326754
+  0.066  0.7687521  0.5326754
+  0.067  0.7687521  0.5326754
+  0.068  0.7687521  0.5326754
+  0.069  0.7687521  0.5326754
+  0.070  0.7687521  0.5326754
+  0.071  0.7687521  0.5326754
+  0.072  0.7687521  0.5326754
+  0.073  0.7687521  0.5326754
+  0.074  0.7687521  0.5326754
+  0.075  0.7687521  0.5326754
+  0.076  0.7687521  0.5326754
+  0.077  0.7687521  0.5326754
+  0.078  0.7687521  0.5326754
+  0.079  0.7687521  0.5326754
+  0.080  0.7687521  0.5326754
+  0.081  0.7687521  0.5326754
+  0.082  0.7687521  0.5326754
+  0.083  0.7687521  0.5326754
+  0.084  0.7687521  0.5326754
+  0.085  0.7687521  0.5326754
+  0.086  0.7687521  0.5326754
+  0.087  0.7687521  0.5326754
+  0.088  0.7687521  0.5326754
+  0.089  0.7687521  0.5326754
+  0.090  0.7687521  0.5326754
+  0.091  0.7687521  0.5326754
+  0.092  0.7687521  0.5326754
+  0.093  0.7687521  0.5326754
+  0.094  0.7687521  0.5326754
+  0.095  0.7687521  0.5326754
+  0.096  0.7687521  0.5326754
+  0.097  0.7687521  0.5326754
+  0.098  0.7687521  0.5326754
+  0.099  0.7687521  0.5326754
+  0.100  0.7687521  0.5326754
+
+Accuracy was used to select the optimal model using the largest value.
+The final value used for the model was cp = 0.011.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict the test set with the trained model</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>test_classification_tree_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(classification_tree_fit, </span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">newdata =</span> test_set_glm)</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test the model performance with the confusion matrix</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>confusionMatrix_classification_tree <span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(test_classification_tree_pred,</span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>                                                      test_set_glm<span class="sc">$</span>HeartDisease)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="random-forest-model" class="level4">
+<h4 class="anchored" data-anchor-id="random-forest-model">random forest model</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">55806176</span>)</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>random_forest_fit <span class="ot">&lt;-</span> <span class="fu">train</span>(HeartDisease <span class="sc">~</span> ExerciseAngina <span class="sc">+</span> Oldpeak <span class="sc">+</span> ChestPainType <span class="sc">+</span> MaxHR <span class="sc">+</span> Sex <span class="sc">+</span> Age,</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> training_set_glm,</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">method =</span> <span class="st">"rf"</span>,</span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">trControl =</span> trctrl,</span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">tuneGrid =</span> <span class="fu">expand.grid</span>(<span class="at">mtry =</span> <span class="dv">1</span><span class="sc">:</span>(<span class="fu">ncol</span>(data)<span class="sc">/</span><span class="dv">3</span>)))</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>random_forest_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Random Forest 
+
+597 samples
+  6 predictor
+  2 classes: '0', '1' 
+
+No pre-processing
+Resampling: Cross-Validated (10 fold, repeated 3 times) 
+Summary of sample sizes: 538, 538, 537, 538, 537, 537, ... 
+Resampling results across tuning parameters:
+
+  mtry  Accuracy   Kappa    
+  1     0.8123767  0.6225924
+  2     0.7945780  0.5873380
+  3     0.7895114  0.5777086
+  4     0.7867616  0.5722823
+
+Accuracy was used to select the optimal model using the largest value.
+The final value used for the model was mtry = 1.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict the test set with the trained model</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>test_random_forest_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(random_forest_fit, </span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">newdata =</span> test_set_glm)</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test the model performance with the confusion matrix</span></span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>confusionMatrix_random_forest <span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(test_random_forest_pred,</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>                                                test_set_glm<span class="sc">$</span>HeartDisease)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 <section id="boosted-tree" class="level4">
 <h4 class="anchored" data-anchor-id="boosted-tree">boosted tree</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">55806177</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>boosted_tree_fit <span class="ot">&lt;-</span> <span class="fu">train</span>(HeartDisease <span class="sc">~</span> ExerciseAngina <span class="sc">+</span> Oldpeak <span class="sc">+</span> ChestPainType <span class="sc">+</span> MaxHR <span class="sc">+</span> Sex <span class="sc">+</span> Age,</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> training_set_glm,</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">method =</span> <span class="st">"gbm"</span>,</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">trControl =</span> trctrl,</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>                     <span class="at">tuneGrid =</span> <span class="fu">expand.grid</span>(<span class="at">n.trees =</span> <span class="fu">c</span>(<span class="dv">25</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>), <span class="co"># Number of trees (boosting iterations) in the GBM model</span></span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">interaction.depth =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="co"># Maximum depth of variable interactions in each tree</span></span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">shrinkage =</span> <span class="fl">0.1</span>, <span class="co"># Shrinkage parameter (learning rate) to control overfitting</span></span>
+<span id="cb71-10"><a href="#cb71-10" aria-hidden="true" tabindex="-1"></a>                                            <span class="at">n.minobsinnode =</span> <span class="dv">10</span>), <span class="co"># Minimum number of observations in each terminal node of a tree</span></span>
+<span id="cb71-11"><a href="#cb71-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">verbose =</span> <span class="cn">FALSE</span> ) <span class="co"># Control verbosity of the GBM model training</span></span>
+<span id="cb71-12"><a href="#cb71-12" aria-hidden="true" tabindex="-1"></a>boosted_tree_fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Stochastic Gradient Boosting 
 
+597 samples
+  6 predictor
+  2 classes: '0', '1' 
 
+No pre-processing
+Resampling: Cross-Validated (10 fold, repeated 3 times) 
+Summary of sample sizes: 538, 537, 537, 538, 538, 537, ... 
+Resampling results across tuning parameters:
+
+  interaction.depth  n.trees  Accuracy   Kappa    
+  1                   25      0.8016213  0.6007686
+  1                   50      0.8067597  0.6114440
+  1                  100      0.8056386  0.6096023
+  1                  200      0.8005168  0.5995168
+  2                   25      0.8028065  0.6034439
+  2                   50      0.8044813  0.6073851
+  2                  100      0.8005548  0.5995123
+  2                  200      0.7993778  0.5975030
+  3                   25      0.8011766  0.6006767
+  3                   50      0.8027952  0.6041374
+  3                  100      0.7949603  0.5884366
+  3                  200      0.7927752  0.5843054
+
+Tuning parameter 'shrinkage' was held constant at a value of 0.1
+
+Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+Accuracy was used to select the optimal model using the largest value.
+The final values used for the model were n.trees = 50, interaction.depth =
+ 1, shrinkage = 0.1 and n.minobsinnode = 10.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict the test set with the trained model</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>test_boosted_tree_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(boosted_tree_fit, </span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">newdata =</span> test_set_glm)</span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test the model performance with the confusion matrix</span></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>confusionMatrix_boosted_tree <span class="ot">&lt;-</span><span class="fu">confusionMatrix</span>(test_boosted_tree_pred,</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>                                               test_set_glm<span class="sc">$</span>HeartDisease)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
+<section id="compare-the-three-tree-models" class="level4">
+<h4 class="anchored" data-anchor-id="compare-the-three-tree-models">Compare the three tree models</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(<span class="at">classification_tree =</span> confusionMatrix_classification_tree<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">random_forest =</span> confusionMatrix_random_forest<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">boosted_tree =</span> confusionMatrix_boosted_tree<span class="sc">$</span>overall[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$classification_tree
+ Accuracy 
+0.7919463 
+
+$random_forest
+ Accuracy 
+0.8322148 
+
+$boosted_tree
+ Accuracy 
+0.8322148 </code></pre>
+</div>
+</div>
+<p>It seems the random forest model and boosted tree model perform equally better than the classification tree model.</p>
+</section>
+</section>
+<section id="wrap-up" class="level3">
+<h3 class="anchored" data-anchor-id="wrap-up">Wrap up</h3>
+<p>Let’s recall all model we fitted and compare their performance!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">list</span>(<span class="at">kNN =</span> confusionMatrix_kNN<span class="sc">$</span>overall[<span class="dv">1</span>],</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">logistic_M1 =</span> confusionMatrix_M1<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">logistic_M2 =</span> confusionMatrix_M2<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">logistic_M3 =</span> confusionMatrix_M3<span class="sc">$</span>overall[<span class="dv">1</span>],</span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">classification_tree =</span> confusionMatrix_classification_tree<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">random_forest =</span> confusionMatrix_random_forest<span class="sc">$</span>overall[<span class="dv">1</span>], </span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">boosted_tree =</span> confusionMatrix_boosted_tree<span class="sc">$</span>overall[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$kNN
+ Accuracy 
+0.7986577 
+
+$logistic_M1
+ Accuracy 
+0.8456376 
+
+$logistic_M2
+ Accuracy 
+0.8322148 
+
+$logistic_M3
+ Accuracy 
+0.8255034 
+
+$classification_tree
+ Accuracy 
+0.7919463 
+
+$random_forest
+ Accuracy 
+0.8322148 
+
+$boosted_tree
+ Accuracy 
+0.8322148 </code></pre>
+</div>
+</div>
+<p>Overall, the logistic model 1 perform the best. Its accuracy rate is the highest, which is 84.56%. As a reminder, logistic model 1 is HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age.</p>
+
+
 </section>
 </section>
 
