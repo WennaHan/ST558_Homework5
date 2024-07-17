@@ -4,9 +4,7 @@ format: html
 editor: visual
 ---
 
-## ST558_Homework5
-
-## Wenna Han
+## ST558_Homework5_Wenna Han
 
 ## Task 1: Conceptual Questions
 
@@ -256,8 +254,11 @@ As shown above, Model 1 has the best performance/accuracy. Model 1 is HeartDisea
 
 
 ### Tree Models
+To create tree models, we don’t need to create the dummy variables. Thus, we can use the previous data set “data” in the training process.
 
+Fitting a model with ExerciseAngina, ChestPainType, Oldpeak, Age, MaxHR and Sex as predictors.
 #### classification tree model
+
 
 #### random forest
 
