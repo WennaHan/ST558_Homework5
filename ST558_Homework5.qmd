@@ -36,20 +36,19 @@ The data set called heart.csv is used for this task. This data set gives informa
 
 ### Quick EDA/Data Preparation
 
-load required library
-
 ```{r}
+# load required library
 library(tidyverse)
 library(caret)
 library(corrplot)
+library(dplyr)
 library(rpart)
 library(randomForest)
 library(gbm)
 ```
 
-read data
-
 ```{r}
+# read in data
 data <- read_csv('heart.csv')
 ```
 
@@ -59,33 +58,211 @@ data <- read_csv('heart.csv')
 # check missingness
 colSums(is.na(data))
 ```
-It seems no NA values in this data. Howeverm still some values seem not valid. 
+
+It seems no NA values in this data. However, still some values seem not valid.
 
 ```{r}
 # check zero values
 colSums(data == 0)
 ```
-The resting blood pressure and serum cholesterol should not have a value of 0, thus they need to be dropped from the data. For fasting blood sugar and oldpeak, 0 is a possible value, which is not due to missing, thus, they are keeped. After data cleaning, data is summaried. 
+
+The resting blood pressure and serum cholesterol should not have a value of 0, thus they need to be dropped from the data. For fasting blood sugar and oldpeak, 0 is a possible value, thus, they are keeped.
 
 ```{r}
 # drop the invalid data
 data <- data |>
   filter(!RestingBP == 0 & !Cholesterol == 0)
+```
 
+After data cleaning, data is summaried to see the general pattern.
+
+```{r}
 # summarize data
 summary(data)
 ```
-The above information shows the distribution of all variables. However, the HeartDisease should be a 0-1 coded categorical variable. let's correct it.
-```{r}
-data$HeartDisease <- as.character(data$HeartDisease)
-str(data)
-```
+
+The above information shows the distribution of numeric variables. However, the HeartDisease should be a 0-1 coded categorical variable. let's correct it and see the distribution of categorical variables.
 
 ```{r}
-corrplot(data, method = 'color',
-         order = 'alphabet',
-         diag = FALSE,
-         col = COL2('RdBu'),
-         tl.cex = 0.7)
+# correct the data type of HeartDisease
+data$HeartDisease <- as.character(data$HeartDisease)
+# summarize data (for character variables)
+table(data$Sex)
+table(data$ChestPainType)
+table(data$RestingECG)
+table(data$ExerciseAngina)
+table(data$ST_Slope)
+table(data$HeartDisease)
 ```
+
+Great! The above information shows the distribution of the categorical variables. Then, we want to see the relationship between HeartDisease and the remaining variables. Let's see the correlation plot. Prior to that, we need to convert categorical variables into dummy variables using dummyVars() and predict().
+```{r}
+# Convert categorical variables to dummy variables
+data_dummy <- dummyVars("~ .", data = data)
+data_transformed <- data.frame(predict(data_dummy, newdata = data))
+
+# Calculate the correlation matrix
+cor_matrix <- cor(data_transformed, use = "complete.obs")
+
+# Create the correlation plot
+corrplot(cor_matrix, method = "color", 
+         tl.cex = 0.8,
+         col = colorRampPalette(c("red", "white", "blue"))(200),
+         type = "upper", 
+         diag = FALSE)
+```
+The correlation plot shows HeartDisease1 is strongly and positively correlated with ChestPainTypeASY, ExerciseAnginaY, Oldpeak, ST_SlopeFlat, Age, and SexM. At the same time HeartDisease1 is strongly and negatively correlated with ST_SlopeUp, ExerciseAnginaN, MaxHR, ChestPainTypeATA, ChestPainTypeNAP, and SexF. Overall, whether a person has HeartDisease is related to his/her **ExerciseAngina**, **Oldpeak**, **ST_Slope**, **ChestPainType**, **MaxHR**, **Sex**, and **Age**. 
+
+#### 2. Create a new variable that is a factor version of the HeartDisease variable (if needed, this depends on how you read in your data). Remove the ST_Slope variable and the original HeartDisease variable (if applicable).
+```{r}
+data_new <- data_transformed |>
+  mutate(HeartDisease = as.factor(HeartDisease0)) |>
+  select(-ST_SlopeDown, -ST_SlopeUp, -ST_SlopeFlat, -HeartDisease0, -HeartDisease1)
+```
+
+#### 3. We’ll be doing a kNN model below to predict whether or not someone has heart disease. To use kNN we generally want to have all numeric predictors (although we could try to create our own loss function as an alternative). In this case we have some categorical predictors still in our data set: Sex, ExerciseAngina, ChestPainType, and RestingECG.Create dummy columns corresponding to the values of these four variables for use in our kNN fit. 
+
+At this point, the four categorical variables have already been transformed to dummy variables. It is ready for the kNN model.
+```{r}
+str(data_new)
+```
+
+### Split Data
+#### Split data into a training and test set. I will use 80/20 split.
+
+```{r}
+set.seed(5580716)
+
+trainIndex <- createDataPartition(data_new$HeartDisease, p = .8,
+                                  list = FALSE,
+                                  times = 1)
+
+training_set <-  data_new[trainIndex, ]
+test_set <- data_new[-trainIndex, ]
+
+#check data
+dim(training_set)
+dim(test_set)
+```
+
+### Train the kNN model. Use repeated 10 fold cross-validation, with the number of repeats being 3. 
+```{r}
+# Use repeated 10 fold cross-validation, with the number of repeats being 3. 
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+set.seed(55807161)
+knn_fit <- train(HeartDisease ~., 
+                 data = training_set, 
+                 method = "knn",
+                 trControl=trctrl,
+                 preProcess = c("center", "scale"), #preprocess the data
+                 tuneGrid = expand.grid(k = 1:40),
+                 tuneLength = 10)
+knn_fit
+```
+Its showing Accuracy and Kappa metrics result for different k value. From the results, it automatically selects best k-value. Here, our training model is choosing k = 21 as its final value. Then, let's predict classes for our test set and test its performance.
+
+```{r}
+# predict the test set with the trained model
+test_pred <- predict(knn_fit, newdata = test_set)
+
+# test the model performance with the confusion matrix
+confusionMatrix(test_pred, test_set$HeartDisease)
+```
+The confusion matrix shows our model accuracy for the test set is 79.87%. It works pretty well.
+
+### Logistic Regression. Based on EDA, posit three different logistic regression models.
+Since glm() could deal with the character predictors, thus, we will use data without dummy variables. 
+```{r}
+# remove ST_Slope and change HeartDisease to factor data
+data_logistic <- data |>
+  select(-ST_Slope) |>
+  mutate(HeartDisease = as.factor(HeartDisease))
+# check data structure
+str(data_logistic)
+
+# split data
+training_set_glm <-  data_logistic[trainIndex, ]
+test_set_glm <- data_logistic[-trainIndex, ]
+
+#check data
+dim(training_set_glm)
+dim(test_set_glm)
+```
+
+#### Logistic Regression Model 1
+The EDA results show that whether a person has HeartDisease is related to his/her **ExerciseAngina**, **Oldpeak**, **ChestPainType**, **MaxHR**, **Sex**, and **Age**. First, let's just fit the linear model with these predictors.
+```{r}
+set.seed(55807162)
+# fit model 1
+logistic_M1_fit <- train(HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age, 
+                         data = training_set_glm, 
+                         method = "glm",
+                         family="binomial",
+                         preProcess = c("center", "scale"), #preprocess the data
+                         trControl=trctrl)
+summary(logistic_M1_fit)
+
+# predict the test set with the trained model
+test_M1_pred <- predict(logistic_M1_fit, newdata = test_set_glm)
+
+# test the model performance with the confusion matrix
+confusionMatrix_M1<-confusionMatrix(test_M1_pred, test_set_glm$HeartDisease)
+```
+
+#### Logistic Regression Model 2
+Since model 1 shows MaxHR's impact is not significant. Also, the correlation between Age and MaxHR is relatively high. The multicolinearity might exist. Let's drop MaxHR from the model. 
+```{r, warning=FALSE}
+set.seed(55807163)
+# fit model 2
+logistic_M2_fit <- train(HeartDisease ~ ExerciseAngina + ChestPainType + Oldpeak + Age + Sex,
+                         data = training_set_glm, 
+                         method = "glm",
+                         family="binomial",
+                         trControl=trctrl)
+summary(logistic_M2_fit)
+
+# predict the test set with the trained model
+test_M2_pred <- predict(logistic_M2_fit, newdata = test_set_glm)
+
+# test the model performance with the confusion matrix
+confusionMatrix_M2<-confusionMatrix(test_M2_pred, test_set_glm$HeartDisease)
+```
+#### Logistic Regression Model 3
+Lastly, since EDA shows the correlation between ExerciseAngina and ChestPainType is relatively high. Let's see the model fit if we add the interaction term of these two.
+```{r,warning=FALSE}
+set.seed(55807164)
+# fit model 3
+logistic_M3_fit <- train(HeartDisease ~ Oldpeak + Sex + Age + ExerciseAngina + ChestPainType + ExerciseAngina:ChestPainType, 
+                         data = training_set_glm, 
+                         method = "glm",
+                         family="binomial",
+                         trControl=trctrl)
+summary(logistic_M3_fit)
+
+# predict the test set with the trained model
+test_M3_pred <- predict(logistic_M3_fit, newdata = test_set_glm)
+
+# test the model performance with the confusion matrix
+confusionMatrix_M3<-confusionMatrix(test_M3_pred, test_set_glm$HeartDisease)
+```
+
+#### Compare the three models
+```{r}
+list(logistic_M1 = confusionMatrix_M1$overall[1], 
+     logistic_M2 = confusionMatrix_M2$overall[1], 
+     logistic_M3 = confusionMatrix_M3$overall[1])
+```
+As shown above, Model 1 has the best performance/accuracy. Model 1 is HeartDisease ~ ExerciseAngina + Oldpeak + ChestPainType + MaxHR + Sex + Age. It seems drop the insignificant predictor from the model or add interaction term does not help.
+
+
+### Tree Models
+
+#### classification tree model
+
+#### random forest
+
+#### boosted tree
+
+
+
 
