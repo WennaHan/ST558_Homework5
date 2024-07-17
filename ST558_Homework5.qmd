@@ -328,7 +328,7 @@ list(classification_tree = confusionMatrix_classification_tree$overall[1],
 It seems the random forest model and boosted tree model perform equally better than the classification tree model. 
 
 ### Wrap up
-Let's recall all model we fitted and compare their performance!
+Let's recall all models we fitted and compare their performance!
 ```{r}
 list(kNN = confusionMatrix_kNN$overall[1],
      logistic_M1 = confusionMatrix_M1$overall[1], 
